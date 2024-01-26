@@ -1,0 +1,52 @@
+import pandas as pd
+import os
+import re
+
+from snakemake.utils import min_version
+
+def set_directory(which):
+    if config['output_dirs'][which] == '':
+        return os.getcwd()
+    
+    return config['output_dirs'][which]
+
+def set_output_directory():
+    if config['output_direction'] == '':
+        return os.getcwd()
+    else:
+        return config['output_directory']
+
+# Set minimum Snakemake version
+min_version('7.0')
+
+# Setup configuration for pipeline
+configfile:
+    'config/config.yaml'
+
+# Set fixed values for pipeline based on configuration
+SAMPLES = pd.read_csv(config['samplesheet'], sep='\t', dtype=str).set_index(['sample'], drop=False)
+LOG = set_directory('log')
+ANALYSIS = set_directory('analysis')
+BENCHMARK = set_directory('benchmark')
+
+rule all:
+    input:
+        # SortMeRNA database download and build
+        f'{ANALYSIS}/sortmerna_database',
+
+        # Rename FASTQs and run FASTqc
+        expand(
+            f'{ANALYSIS}/fastqc/{{samples.sample}}_R{{read}}_fastqc.{{ext}}',
+            ext = ['html', 'zip'],
+            read = [1, 2],
+            samples = SAMPLES.itertuples()
+        ),
+
+        # Run SortMeRNA
+        expand(
+            f'{ANALYSIS}/sortmerna/{{samples.sample}}',
+            samples = SAMPLES.itertuples(),
+        ),
+
+include:
+    'rules/prealignment.smk'
