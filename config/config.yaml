@@ -1,0 +1,49 @@
+#-----------------------------------------------------------------------------------------------------------------------
+# STORMqc Configuration Template
+#
+# Config Creation Data:
+#     CREATE_DATE
+#
+# Template Created by:
+#     Jacob Morrison
+#
+# Template Creation Date:
+#     January 2024
+#
+# Notes:
+#     Jan 2024 -
+#         Initial creation
+#-----------------------------------------------------------------------------------------------------------------------
+
+# HPC Parameters
+#-----------------------------------------------------------------------------------------------------------------------
+# Memory and thread parameters used when running on a cluster
+hpc_parameters:
+    # Number of threads to run for different parts of pipeline
+    threads:
+        fastqc: 2
+        sortmerna: 8
+    # Amounts of memory to requestion (in gb)
+    memory:
+        small: 20
+    # Time to request (give in D-HH:MM::SS, must be given as a string for pipeline to work)
+    runtime:
+        short: '0-01:00:00'
+        medium: '1-00:00:00'
+        long: '2-00:00:00'
+#-----------------------------------------------------------------------------------------------------------------------
+
+# Input and Output for Pipeline
+#-----------------------------------------------------------------------------------------------------------------------
+# Directory where raw FASTQs live, can be an absolute path or path relative to top directory of pipeline
+fastq_dir: FASTQ_DIR
+
+# Samplesheet for mapping sample names to FASTQ files, can be an absolute or relative path
+samplesheet: SAMPLESHEET
+
+# Directories for writing output of pipeline to (if '', write to same directory as top directory of pipeline)
+output_dirs:
+    analysis: ANALYSIS_DIR
+    benchmark: BENCHMARK_DIR
+    log: LOG_DIR
+#-----------------------------------------------------------------------------------------------------------------------
