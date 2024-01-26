@@ -1,0 +1,8 @@
+# Results directory
+results/*
+
+# Files for snakemake
+.snakemake/
+
+# Input files to pipeline
+bin/*.tsv
