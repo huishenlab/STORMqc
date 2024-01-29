@@ -106,7 +106,8 @@ rule sortmerna_run:
     params:
         sample = '{sample}',
     log:
-        f'{ANALYSIS}/sortmerna/{{sample}}.out',
+        stdout = f'{LOG}/sortmerna/{{sample}}.out',
+        stderr = f'{LOG}/sortmerna/{{sample}}.err',
     threads: config['hpc_parameters']['threads']['sortmerna'],
     resources:
         mem_gb = config['hpc_parameters']['memory']['small'],
@@ -123,5 +124,5 @@ rule sortmerna_run:
             --idx-dir {input.db_idx} \
             -ref {input.db} \
             --reads {input.fq1} \
-            --reads {input.fq2} 2> {log}
+            --reads {input.fq2} 2> {log.stderr} 1> {log.stdout}
         '''
