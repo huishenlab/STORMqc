@@ -5,21 +5,19 @@ import os
 from datetime import date
 
 class DirectoryFiles:
-    def __init__(self, top_dir, pip_dir, out_dir):
+    def __init__(self, top_dir, pip_dir):
         """Initialize class
 
         Inputs -
             top_dir: str - top directory to build off
             pip_dir: str - pipeline files go here
-            out_dir: str - output files from pipeline go here
         """
         self.top_dir = os.path.abspath(top_dir) # top directory to build from
         self.pip_dir = os.path.abspath(pip_dir) # pipeline files
-        self.out_dir = os.path.abspath(out_dir) # output (analysis, logs, and benchmarks)
 
-        self.log_dir = {'node': os.path.abspath(os.path.join(out_dir, 'log'))}
-        self.ana_dir = {'node': os.path.abspath(os.path.join(out_dir, 'analysis'))}
-        self.ben_dir = {'node': os.path.abspath(os.path.join(out_dir, 'benchmark'))}
+        self.log_dir = {'node': os.path.abspath(os.path.join(top_dir, 'log'))}
+        self.ana_dir = {'node': os.path.abspath(os.path.join(top_dir, 'analysis'))}
+        self.ben_dir = {'node': os.path.abspath(os.path.join(top_dir, 'benchmark'))}
 
     def get_analysis_node_dir(self):
         return self.ana_dir['node']
@@ -55,7 +53,6 @@ class DirectoryFiles:
         os.makedirs(self.pip_dir, exist_ok=True)
 
         # Create processed data directory and subdirectories
-        os.makedirs(self.out_dir, exist_ok=True)
         os.makedirs(self.get_log_node_dir(), exist_ok=True)
         os.makedirs(self.get_analysis_node_dir(), exist_ok=True)
         os.makedirs(self.get_benchmark_node_dir(), exist_ok=True)
@@ -152,9 +149,8 @@ def setup_base_directory_structure(prefix):
     """
     top_dir = f'../results/{prefix}'
     pip_dir = f'{top_dir}/pipeline_files'
-    out_dir = f'{top_dir}/processed_data'
 
-    dir_files = DirectoryFiles(top_dir, pip_dir, out_dir)
+    dir_files = DirectoryFiles(top_dir, pip_dir)
     created = dir_files.create_base_directories()
     if not created:
         return None
@@ -361,4 +357,5 @@ if __name__ == '__main__':
         submits = create_submit_file(SUBMIT_TEMPLATE, configs, dir_files)
 
         os.chdir(HOMEBASE)
-        print(os.listdir())
+
+        print(f'Sucessfully created directory structure and pipelines files for {p}')
