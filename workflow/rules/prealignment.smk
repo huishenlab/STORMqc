@@ -68,7 +68,7 @@ rule fastqc:
         fastqc --outdir {params.dir} --threads {threads} {input} 2> {log.stderr} 1> {log.stdout}
         '''
 
-rule sortmerna_assets:
+checkpoint sortmerna_assets:
     output:
         db_dir = directory(f'{ANALYSIS}/sortmerna_database')
     log:
@@ -95,13 +95,23 @@ rule sortmerna_assets:
             -ref {output.db_dir}/smr_v4.3_fast_db.fasta 
         '''
 
+def get_sortmerna_db(wildcards):
+    dir_loc = checkpoints.sortmerna_assets.get().output.db_dir
+    return f'{dir_loc}/smr_v4.3_fast_db.fasta'
+
+def get_sortmerna_db_idx(wildcards):
+    dir_loc = checkpoints.sortmerna_assets.get().output.db_dir
+    return f'{dir_loc}/idx'
+
 rule sortmerna_run:
     input:
         fq1 = get_renamed_read1,
         fq2 = get_renamed_read2,
-        db = f'{ANALYSIS}/sortmerna_database/smr_v4.3_fast_db.fasta',
-        db_idx = f'{ANALYSIS}/sortmerna_database/idx',
+        db = get_sortmerna_db,
+        db_idx = get_sortmerna_db_idx,
     output:
+        f'{ANALYSIS}/sortmerna/{{sample}}/{{sample}}.log',
+        f'{ANALYSIS}/sortmerna/{{sample}}/{{sample}}.sam.gz',
         work_dir = directory(f'{ANALYSIS}/sortmerna/{{sample}}'),
     params:
         sample = '{sample}',
