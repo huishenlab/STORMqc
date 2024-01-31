@@ -47,11 +47,12 @@ snakemake \
     --latency-wait 20 \
     --keep-going \
     --use-conda \
-    --jobs 20 \
+    --jobs 10 \
     --configfile ${CONFIG_FILE} \
     --cluster "mkdir -p ${LOG_DIR}/{rule}; sbatch \
         --export=ALL \
         --ntasks {threads} \
         --mem={resources.mem_gb}G \
+        --partition short,long \
         -t {resources.time} \
         -o ${LOG_DIR}/{rule}/{rule}-%j.log"
