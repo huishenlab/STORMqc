@@ -31,9 +31,6 @@ BENCHMARK = set_directory('benchmark')
 
 rule all:
     input:
-        # SortMeRNA database download and build
-        f'{ANALYSIS}/sortmerna_database',
-
         # Rename FASTQs and run FASTqc
         expand(
             f'{ANALYSIS}/fastqc/{{samples.sample}}_R{{read}}_fastqc.{{ext}}',
@@ -42,14 +39,8 @@ rule all:
             samples = SAMPLES.itertuples()
         ),
 
-        # Run SortMeRNA
-        expand(
-            f'{ANALYSIS}/sortmerna/{{samples.sample}}',
-            samples = SAMPLES.itertuples(),
-        ),
-
         # MultiQC
-        f'{ANALYSIS}/multiqc/multiqc_report_data',
+        f'{ANALYSIS}/multiqc/multiqc_report_data/multiqc_data.json',
         f'{ANALYSIS}/multiqc/multiqc_report.html',
 
         # Platetools data (collects data into a single data frame for plotting)

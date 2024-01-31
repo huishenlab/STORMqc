@@ -22,7 +22,6 @@ hpc_parameters:
     # Number of threads to run for different parts of pipeline
     threads:
         fastqc: 2
-        sortmerna: 8
     # Amounts of memory to requestion (in gb)
     memory:
         small: 20

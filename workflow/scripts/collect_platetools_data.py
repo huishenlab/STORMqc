@@ -55,7 +55,7 @@ def parse_per_sequence_qual_scores(data):
 def parse_general_stats(data):
     sub = data['report_saved_raw_data']['multiqc_general_stats']
 
-    read_data = {'well': [], 'cell_id': [], 'read': [], 'n_reads_mil': [], 'rrna_pct': []}
+    read_data = {'well': [], 'cell_id': [], 'read': [], 'n_reads_mil': []}
     for name, dic in sub.items():
         well, id, read = parse_name(name)
         n_reads = dic['FastQC_mqc-generalstats-fastqc-total_sequences']
@@ -64,12 +64,6 @@ def parse_general_stats(data):
         read_data['cell_id'].append(id)
         read_data['read'].append(read)
         read_data['n_reads_mil'].append(round(n_reads / 1000000.0, 2))
-
-        try:
-            rrna_pc = round(dic['SortMeRNA_mqc-generalstats-sortmerna-rRNA_pct'], 2)
-            read_data['rrna_pct'].append(rrna_pc)
-        except KeyError:
-            read_data['rrna_pct'].append(np.nan)
 
     return pd.DataFrame(read_data)
 

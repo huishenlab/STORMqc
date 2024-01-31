@@ -10,7 +10,7 @@
 #----------------------------------------------------------------------------------------------------------------------
 
 def get_multiqc_params(wildcards):
-    indirs = f'{ANALYSIS}/fastqc {ANALYSIS}/sortmerna'
+    indirs = f'{ANALYSIS}/fastqc'
 
     return indirs
 
@@ -18,10 +18,9 @@ rule multiqc:
     input:
         # FASTqc
         expand(f'{ANALYSIS}/fastqc/{{samples.sample}}_R{{read}}_fastqc.zip', read=[1, 2], samples=SAMPLES.itertuples()),
-        # SortMeRNA
-        expand(f'{ANALYSIS}/sortmerna/{{samples.sample}}', samples=SAMPLES.itertuples()),
     output:
         directory(f'{ANALYSIS}/multiqc/multiqc_report_data'),
+        f'{ANALYSIS}/multiqc/multiqc_report_data/multiqc_data.json',
         f'{ANALYSIS}/multiqc/multiqc_report.html',
     params:
         dirs = get_multiqc_params,
