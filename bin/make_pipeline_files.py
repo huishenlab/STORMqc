@@ -5,13 +5,15 @@ import os
 from datetime import date
 
 class DirectoryFiles:
-    def __init__(self, top_dir, pip_dir):
+    def __init__(self, top_dir, pip_dir, overwrite):
         """Initialize class
 
         Inputs -
             top_dir: str - top directory to build off
             pip_dir: str - pipeline files go here
+            overwrite: str - how to handle overwriting of existing directories
         """
+        self.overwrite = overwrite
         self.top_dir = os.path.abspath(top_dir) # top directory to build from
         self.pip_dir = os.path.abspath(pip_dir) # pipeline files
 
@@ -42,9 +44,15 @@ class DirectoryFiles:
         try:
             os.mkdir(self.top_dir)
         except FileExistsError:
-            check = input(f'WARNING: {self.top_dir} already exists! Overwrite (Y) or Skip (n)? [n]/Y ')
-            if check == 'Y':
-                print(f'WARNING: You chose to overwrite the pipeline files!')
+            if self.overwrite == 'ask':
+                check = input(f'WARNING: {self.top_dir} already exists! Overwrite (Y) or Skip (n)? [n]/Y ')
+                if check == 'Y':
+                    print(f'WARNING: You chose to overwrite the pipeline files!')
+                else:
+                    print(f'MESSAGE: Skipping {self.top_dir}')
+                    return False
+            elif self.overwrite == 'always':
+                    print(f'WARNING: You chose to overwrite the pipeline files!')
             else:
                 print(f'MESSAGE: Skipping {self.top_dir}')
                 return False
@@ -110,6 +118,13 @@ def parse_args():
         help='file with name prefixes and directories'
     )
 
+    parser.add_argument(
+        '-O', '--overwrite',
+        choices = ['ask', 'always', 'never'],
+        default='ask',
+        help='how to handle existing experiment directories (ask [default]: ask for confirmation | always: always overwrite | never: never overwrite)'
+    )
+
     return parser.parse_args()
 
 def parse_input_file(fname):
@@ -139,18 +154,19 @@ def parse_input_file(fname):
 
     return out
 
-def setup_base_directory_structure(prefix):
+def setup_base_directory_structure(prefix, overwrite):
     """Create directory structure for new run
 
     Inputs -
         prefix: str - name of top directory to create for new processing run
+        overwrite: str - how to handle overwriting of existing directories
     Returns -
         DirectoryFiles if created else None
     """
     top_dir = f'../results/{prefix}'
     pip_dir = f'{top_dir}/pipeline_files'
 
-    dir_files = DirectoryFiles(top_dir, pip_dir)
+    dir_files = DirectoryFiles(top_dir, pip_dir, overwrite)
     created = dir_files.create_base_directories()
     if not created:
         return None
@@ -319,6 +335,12 @@ def create_submit_file(template, cnames, dir_files):
 if __name__ == '__main__':
     # Command line arguments
     args = parse_args()
+    if args.overwrite == 'ask':
+        print('MESSAGE: You have chosen to confirm overwriting of all directories that already exist!')
+    elif args.overwrite == 'always':
+        print('MESSAGE: You have chosen to overwrite all directories that already exist!')
+    else:
+        print('MESSAGE: You have chosen to ignore all directories that already exist!')
 
     # Get config file template before we start moving directories
     CONFIG_TEMPLATE = get_config_template()
@@ -337,7 +359,7 @@ if __name__ == '__main__':
         # Create directories and switch to new pipeline files directory
         # Try creating directories and switch to new pipeline if desired
         # Can't create lane directories since we haven't processed the input directory yet
-        dir_files = setup_base_directory_structure(p)
+        dir_files = setup_base_directory_structure(p, args.overwrite)
         if dir_files is None:
             continue
         os.chdir(dir_files.pip_dir)
