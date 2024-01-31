@@ -182,7 +182,7 @@ def get_id_and_lane(fname):
     Return -
         tuple: (str, str) - (sample ID, lane)
     """
-    pieces = fname.split('_')
+    pieces = [x for x in fname.split('_') if 'plate' not in x]
 
     # Get index of lane element, this will be the position before the read name
     # Handling it this way avoids relying on the sample ID always being "Well_CellId"
