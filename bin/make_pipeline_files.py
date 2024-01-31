@@ -4,6 +4,19 @@ import sys
 import os
 from datetime import date
 
+# Retrieved from StackOverflow:
+#     https://stackoverflow.com/questions/287871/how-do-i-print-colored-text-to-the-terminal
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 class DirectoryFiles:
     def __init__(self, top_dir, pip_dir, overwrite):
         """Initialize class
@@ -45,16 +58,17 @@ class DirectoryFiles:
             os.mkdir(self.top_dir)
         except FileExistsError:
             if self.overwrite == 'ask':
-                check = input(f'WARNING: {self.top_dir} already exists! Overwrite (Y) or Skip (n)? [n]/Y ')
+                print_warning(f'{self.top_dir} already exists!')
+                check = input('Overwrite (Y) or Skip (n)? [n]/Y ')
                 if check == 'Y':
-                    print(f'WARNING: You chose to overwrite the pipeline files!')
+                    print_warning('You chose to overwrite the pipeline files!')
                 else:
-                    print(f'MESSAGE: Skipping {self.top_dir}')
+                    print_message(f'Skipping {self.top_dir}')
                     return False
             elif self.overwrite == 'always':
-                    print(f'WARNING: You chose to overwrite the pipeline files!')
+                    print_warning('You chose to overwrite the pipeline files!')
             else:
-                print(f'MESSAGE: Skipping {self.top_dir}')
+                print_message(f'Skipping {self.top_dir}')
                 return False
 
         # Create pipeline files directory
@@ -82,10 +96,18 @@ class DirectoryFiles:
 def format_date():
     return date.today().strftime('%d %B %Y')   
 
-# Helper function to print message and exit
+# Helper function to print error message and exit
 def print_error_and_exit(error):
-    print(error)
+    print(f'{bcolors.FAIL}[ERROR] {error}{bcolors.ENDC}')
     sys.exit(1)
+
+# Helper function to print warning
+def print_warning(warning):
+    print(f'{bcolors.WARNING}[WARNING] {warning}{bcolors.ENDC}')
+
+# Helper function to print message
+def print_message(message):
+    print(f'{bcolors.OKGREEN}[MESSAGE] {message}{bcolors.ENDC}')
 
 # Helper function to read file contents into one string
 def get_file_contents(fname):
@@ -146,11 +168,13 @@ def parse_input_file(fname):
 
                 # Catch early if input directory doesn't exist
                 if not os.path.exists(direct):
-                    raise FileNotFoundError(f'ERROR: {direct} does not exist. Please check and rerun.')
+                    raise FileNotFoundError(f'{direct} does not exist. Please check and rerun.')
 
                 out.append((prefix, direct))
         except FileNotFoundError as e:
             print_error_and_exit(e)
+        except IndexError:
+            print_error_and_exit(f'malformed input file: {fname}')
 
     return out
 
@@ -188,7 +212,7 @@ def format_well_name(well):
         number = int(well[1])
         return f'{letter}{number:02d}'
     else:
-        print_error_and_exit(f'ERROR: malformed well name input: {well}')
+        print_error_and_exit(f'malformed well name input: {well}')
 
 def get_id_and_lane(fname):
     """Parse FASTQ name to extract sample ID and lane information
@@ -208,7 +232,7 @@ def get_id_and_lane(fname):
     elif 'R2' in pieces:
         lane_index = pieces.index('R2') - 1
     else:
-        print_error_and_exit('ERROR: cannot retrieve sample ID and lane info from {fname}. Missing R1 and R2')
+        print_error_and_exit(f'cannot retrieve sample ID and lane info from {fname}. Missing R1 and R2')
 
     # Correctly format well
     pieces[0] = format_well_name(pieces[0])
@@ -228,7 +252,7 @@ def create_samplesheet(dname):
 
     # If no files match the pattern, break early
     if len(fastqs) == 0:
-        print_error_and_exit(f'ERROR: {dname} has no files that match the pattern *_R1_001.fastq.gz')
+        print_error_and_exit(f'{dname} has no files that match the pattern *_R1_001.fastq.gz')
 
     # Multiple lanes may exist in one directory, split those up here
     lanes = {}
@@ -239,7 +263,7 @@ def create_samplesheet(dname):
 
             # Check read 2 exists
             if not os.path.exists(os.path.join(path, f2)):
-                raise FileNotFoundError(f'ERROR: malformed read 2 file name - {f2} could not be found.')
+                raise FileNotFoundError(f'malformed read 2 file name - {f2} could not be found.')
 
             sample_id, lane = get_id_and_lane(f1)
 
@@ -336,11 +360,11 @@ if __name__ == '__main__':
     # Command line arguments
     args = parse_args()
     if args.overwrite == 'ask':
-        print('MESSAGE: You have chosen to confirm overwriting of all directories that already exist!')
+        print_message('You have chosen to confirm overwriting of all directories that already exist!')
     elif args.overwrite == 'always':
-        print('MESSAGE: You have chosen to overwrite all directories that already exist!')
+        print_message('You have chosen to overwrite all directories that already exist!')
     else:
-        print('MESSAGE: You have chosen to ignore all directories that already exist!')
+        print_message('You have chosen to ignore all directories that already exist!')
 
     # Get config file template before we start moving directories
     CONFIG_TEMPLATE = get_config_template()
@@ -380,4 +404,4 @@ if __name__ == '__main__':
 
         os.chdir(HOMEBASE)
 
-        print(f'Sucessfully created directory structure and pipelines files for {p}')
+        print_message(f'Sucessfully created directory structure and pipelines files for {p}')
