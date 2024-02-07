@@ -287,7 +287,7 @@ def create_samplesheet(dname):
 
     return samplesheets
 
-def create_config_file(template, dname, snames, dir_files, star_idx):
+def create_config_file(template, dname, snames, dir_files, resource_paths):
     """Create config file from template in config/ directory
 
     Inputs -
@@ -295,7 +295,7 @@ def create_config_file(template, dname, snames, dir_files, star_idx):
         dname: str - directory where FASTQs live
         snames: str - samplesheet name
         dir_files: DirectoryFiles - paths where output should be written
-        star_idx: str - path to STAR index
+        resource_paths: dict - paths to various resources
     Returns -
         list: config file names created
     """
@@ -306,7 +306,10 @@ def create_config_file(template, dname, snames, dir_files, star_idx):
     )
     template = template.replace('CREATE_DATE', format_date())
     template = template.replace('FASTQ_DIR', dname)
-    template = template.replace('STAR_INDEX', star_idx)
+    template = template.replace('STAR_INDEX', resource_paths['star_idx'])
+    template = template.replace('RRNA_PATH', resource_paths['rrna_path'])
+    template = template.replace('MITO_PATH', resource_paths['mito_path'])
+    template = template.replace('ERCC_PATH', resource_paths['ercc_path'])
 
     configs = []
     for sname in snames:
@@ -411,7 +414,12 @@ if __name__ == '__main__':
     # Check if resources files have already been created
     # TODO: Allow user to select either human or mouse
     check_resource_files_exist(f'{HOMEBASE}/..')
-    star_idx = os.path.abspath(f'{HOMEBASE}/../resources/star_index_human')
+    resource_paths = {
+        'star_idx': os.path.abspath(f'{HOMEBASE}/../resources/star_index_human'),
+        'rrna_path': os.path.abspath(f'{HOMEBASE}/../resources/gene_ids.hg38.rrna.txt'),
+        'mito_path': os.path.abspath(f'{HOMEBASE}/../resources/gene_ids.hg38.mito.txt'),
+        'ercc_path': os.path.abspath(f'{HOMEBASE}/../resources/gene_ids.hg38.ercc.txt'),
+    }
 
     # Parse input file to get directories to create pipeline files for
     dirs = parse_input_file(args.directory_file)
@@ -435,7 +443,7 @@ if __name__ == '__main__':
             dir_files.create_lane_directories(lane)
 
         # Make config files
-        configs = create_config_file(CONFIG_TEMPLATE, d, samplesheets, dir_files, star_idx)
+        configs = create_config_file(CONFIG_TEMPLATE, d, samplesheets, dir_files, resource_paths)
 
         # Make submit scripts
         submits = create_submit_file(SUBMIT_TEMPLATE, configs, dir_files)

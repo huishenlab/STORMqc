@@ -46,8 +46,13 @@ rule multiqc:
 rule platetools_data:
     input:
         multiqc_data = f'{ANALYSIS}/multiqc/multiqc_report_data/multiqc_data.json',
+        read_counts = expand(f'{ANALYSIS}/star/{{samples.sample}}ReadsPerGene.out.tab', samples=SAMPLES.itertuples()),
     output:
         platetools_data = f'{ANALYSIS}/plots/platetools_data.tsv',
+    params:
+        rrna = config['gene_ids']['rrna'],
+        mito = config['gene_ids']['mito'],
+        ercc = config['gene_ids']['ercc'],
     log:
         f'{LOG}/plots/platetools_data.log',
     benchmark:

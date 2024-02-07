@@ -1,8 +1,10 @@
+from functools import reduce
 import pandas as pd
 import numpy as np
 import json
 import sys
 import re
+import os
 
 def read_file(fname):
     with open(fname, 'r') as fh:
@@ -92,18 +94,46 @@ def parse_general_stats(data):
 
     return pd.DataFrame(read_data)
 
-def main(fname, oname):
-    data = read_file(fname)
+def parse_read_counts(count_files, params):
+    rrna = pd.read_csv(params['rrna'], sep=' ', names=['id', 'name'])
+    mito = pd.read_csv(params['mito'], sep=' ', names=['id', 'name'])
+    ercc = pd.read_csv(params['ercc'], sep=' ', names=['id', 'name'])
 
-    qual_data = parse_per_sequence_qual_scores(data)
-    gen_data  = parse_general_stats(data)
+    count_data = {'well': [], 'cell_id': [], 'rrna': [], 'mito': [], 'ercc': []}
+    for fname in count_files:
+        _, name = os.path.split(fname)
+        well, id, _ = parse_name(name.replace('ReadsPerGene.out.tab', ''))
+        df = pd.read_csv(fname, sep='\t', names=['id', 'unstranded', 'forward', 'reverse'], header=None, skiprows=4)
+        total_reads = df['reverse'].sum()
 
-    df = qual_data.merge(gen_data, on=['well', 'cell_id'])
+        df_rrna = pd.merge(rrna, df, on=['id'])
+        df_mito = pd.merge(mito, df, on=['id'])
+        df_ercc = pd.merge(ercc, df, on=['id'])
+
+        count_data['well'].append(well)
+        count_data['cell_id'].append(id)
+        count_data['rrna'].append(round(100 * df_rrna['reverse'].sum() / total_reads, 4))
+        count_data['mito'].append(round(100 * df_mito['reverse'].sum() / total_reads, 4))
+        count_data['ercc'].append(round(100 * df_ercc['reverse'].sum() / total_reads, 4))
+
+    return pd.DataFrame(count_data)
+
+def main(multiqc_data, count_files, params, oname):
+    data = read_file(multiqc_data)
+
+    datasets = []
+    datasets.append(parse_per_sequence_qual_scores(data))
+    datasets.append(parse_general_stats(data))
+    datasets.append(parse_read_counts(count_files, params))
+
+    df = reduce(lambda x, y: pd.merge(x, y, on=['well', 'cell_id']), datasets)
     df.to_csv(oname, sep='\t', na_rep='NA', index=False)
 
 with open(snakemake.log[0], 'w') as fh:
     sys.stderr = sys.stdout = fh
     main(
         snakemake.input['multiqc_data'],
+        snakemake.input['read_counts'],
+        snakemake.params,
         snakemake.output['platetools_data'],
     )
