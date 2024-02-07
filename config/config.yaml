@@ -22,9 +22,13 @@ hpc_parameters:
     # Number of threads to run for different parts of pipeline
     threads:
         fastqc: 2
+        star: 16
+        samtools: 8
     # Amounts of memory to requestion (in gb)
     memory:
-        small: 20
+        small: 32
+        medium: 64
+        large: 128
     # Time to request (give in D-HH:MM::SS, must be given as a string for pipeline to work)
     runtime:
         short: '0-01:00:00'
@@ -45,4 +49,10 @@ output_dirs:
     analysis: ANALYSIS_DIR
     benchmark: BENCHMARK_DIR
     log: LOG_DIR
+#-----------------------------------------------------------------------------------------------------------------------
+
+# Parameters related to STAR alignment
+#-----------------------------------------------------------------------------------------------------------------------
+star:
+    index: STAR_INDEX
 #-----------------------------------------------------------------------------------------------------------------------

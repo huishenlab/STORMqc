@@ -287,7 +287,7 @@ def create_samplesheet(dname):
 
     return samplesheets
 
-def create_config_file(template, dname, snames, dir_files):
+def create_config_file(template, dname, snames, dir_files, star_idx):
     """Create config file from template in config/ directory
 
     Inputs -
@@ -295,6 +295,7 @@ def create_config_file(template, dname, snames, dir_files):
         dname: str - directory where FASTQs live
         snames: str - samplesheet name
         dir_files: DirectoryFiles - paths where output should be written
+        star_idx: str - path to STAR index
     Returns -
         list: config file names created
     """
@@ -305,6 +306,7 @@ def create_config_file(template, dname, snames, dir_files):
     )
     template = template.replace('CREATE_DATE', format_date())
     template = template.replace('FASTQ_DIR', dname)
+    template = template.replace('STAR_INDEX', star_idx)
 
     configs = []
     for sname in snames:
@@ -356,6 +358,37 @@ def create_submit_file(template, cnames, dir_files):
 
     return submit_files
 
+def check_resource_files_exist(base_dir):
+    """Checks if needed input files have been created already.
+
+    Inputs -
+        None
+    Returns -
+        bool, exits if missing
+    """
+    SOLUTION = 'Trying running resources/gather_rna_resources.slurm'
+
+    if not os.path.exists(f'{base_dir}/resources/star_index_human'):
+        print_error_and_exit(f'STAR index for the human genome is missing. {SOLUTION}')
+    if not os.path.exists(f'{base_dir}/resources/star_index_mouse'):
+        print_error_and_exit(f'STAR index for the mouse genome is missing. {SOLUTION}')
+
+    if not os.path.exists(f'{base_dir}/resources/gene_ids.hg38.rrna.txt'):
+        print_error_and_exit(f'human rRNA gene IDs missing. {SOLUTION}')
+    if not os.path.exists(f'{base_dir}/resources/gene_ids.hg38.mito.txt'):
+        print_error_and_exit(f'human mtDNA gene IDs missing. {SOLUTION}')
+    if not os.path.exists(f'{base_dir}/resources/gene_ids.hg38.ercc.txt'):
+        print_error_and_exit(f'human ERCC gene IDs missing. {SOLUTION}')
+
+    if not os.path.exists(f'{base_dir}/resources/gene_ids.mm10.rrna.txt'):
+        print_error_and_exit(f'mouse rRNA gene IDs missing. {SOLUTION}')
+    if not os.path.exists(f'{base_dir}/resources/gene_ids.mm10.mito.txt'):
+        print_error_and_exit(f'mouse mtDNA gene IDs missing. {SOLUTION}')
+    if not os.path.exists(f'{base_dir}/resources/gene_ids.mm10.ercc.txt'):
+        print_error_and_exit(f'mouse ERCC gene IDs missing. {SOLUTION}')
+
+    return True
+
 if __name__ == '__main__':
     # Command line arguments
     args = parse_args()
@@ -374,6 +407,11 @@ if __name__ == '__main__':
 
     # Set a place to come back to before creating a new set of directories
     HOMEBASE = os.getcwd()
+
+    # Check if resources files have already been created
+    # TODO: Allow user to select either human or mouse
+    check_resource_files_exist(f'{HOMEBASE}/..')
+    star_idx = os.path.abspath(f'{HOMEBASE}/../resources/star_index_human')
 
     # Parse input file to get directories to create pipeline files for
     dirs = parse_input_file(args.directory_file)
@@ -397,7 +435,7 @@ if __name__ == '__main__':
             dir_files.create_lane_directories(lane)
 
         # Make config files
-        configs = create_config_file(CONFIG_TEMPLATE, d, samplesheets, dir_files)
+        configs = create_config_file(CONFIG_TEMPLATE, d, samplesheets, dir_files, star_idx)
 
         # Make submit scripts
         submits = create_submit_file(SUBMIT_TEMPLATE, configs, dir_files)
