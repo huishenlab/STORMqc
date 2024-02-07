@@ -74,7 +74,7 @@ def parse_general_stats(data):
 
     uniq = set([s.replace('_R1', '').replace('_R2', '') for s in sub.keys()])
 
-    read_data = {'well': [], 'cell_id': [], 'n_reads_mil_R1': [], 'n_reads_mil_R2': []}
+    read_data = {'well': [], 'cell_id': [], 'n_reads_mil_R1': [], 'n_reads_mil_R2': [], 'percent_uniq_map': []}
     for name in uniq:
         well, id, _ = parse_name(name)
         read_data['well'].append(well)
@@ -85,6 +85,9 @@ def parse_general_stats(data):
         )
         read_data['n_reads_mil_R2'].append(
             round(sub[f'{name}_R2']['FastQC_mqc-generalstats-fastqc-total_sequences'] / 1000000.0, 2)
+        )
+        read_data['percent_uniq_map'].append(
+            sub[name]['STAR_mqc-generalstats-star-uniquely_mapped_percent']
         )
 
     return pd.DataFrame(read_data)
