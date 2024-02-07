@@ -39,6 +39,22 @@ rule all:
             samples = SAMPLES.itertuples()
         ),
 
+        # Alignments
+        expand(
+            f'{ANALYSIS}/star/{{samples.sample}}{{ext}}',
+            samples = SAMPLES.itertuples(),
+            ext = ['Log.final.out', 'Log.out', 'Log.progress.out', 'ReadsPerGene.out.tab', 'SJ.out.tab',
+                   'Aligned.sortedByCoord.out.bam', 'Aligned.sortedByCoord.out.bam.bai']
+        ),
+        expand(
+            f'{ANALYSIS}/samtools/{{samples.sample}}.stats',
+            samples = SAMPLES.itertuples()
+        ),
+        expand(
+            f'{ANALYSIS}/samtools/{{samples.sample}}.flagstat',
+            samples = SAMPLES.itertuples()
+        ),
+
         # MultiQC
         f'{ANALYSIS}/multiqc/multiqc_report_data/multiqc_data.json',
         f'{ANALYSIS}/multiqc/multiqc_report.html',
@@ -48,6 +64,9 @@ rule all:
 
 include:
     'rules/prealignment.smk'
+
+include:
+    'rules/align.smk'
 
 include:
     'rules/visualize.smk'
