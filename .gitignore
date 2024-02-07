@@ -6,3 +6,11 @@ results/*
 
 # Input files to pipeline
 bin/*.tsv
+
+# Ignore gathered resources
+resources/*.fa*
+resources/*.gtf*
+resources/*.bed*
+resources/*.log
+resources/*.txt
+resources/star_index_*
