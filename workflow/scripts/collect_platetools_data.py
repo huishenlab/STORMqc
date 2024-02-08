@@ -118,13 +118,36 @@ def parse_read_counts(count_files, params):
 
     return pd.DataFrame(count_data)
 
-def main(multiqc_data, count_files, params, oname):
-    data = read_file(multiqc_data)
+def parse_non_annotated(infiles):
+    out_data = {'well': [], 'cell_id': [], 'non_annot': []}
+    for fname in infiles:
+        _, name = os.path.split(fname)
+        well, id, _ = parse_name(name.replace('.non_annotated.tsv', ''))
+
+        with open(fname, 'r') as fh:
+            data = fh.read()
+
+        m = re.search(r'total_reads\s+(\d+)\s+non_annotated\s+(\d+)', data, re.MULTILINE)
+        if m is None:
+            print(f'ERROR: Could not find necessary data from {fname}')
+            sys.exit(1)
+
+        percent = round(100 * int(m.group(2)) / int(m.group(1)), 2)
+
+        out_data['well'].append(well)
+        out_data['cell_id'].append(id)
+        out_data['non_annot'].append(percent)
+
+    return pd.DataFrame(out_data)
+
+def main(input, params, oname):
+    data = read_file(input['multiqc_data'])
 
     datasets = []
     datasets.append(parse_per_sequence_qual_scores(data))
     datasets.append(parse_general_stats(data))
-    datasets.append(parse_read_counts(count_files, params))
+    datasets.append(parse_read_counts(input['read_counts'], params))
+    datasets.append(parse_non_annotated(input['non_annotated']))
 
     df = reduce(lambda x, y: pd.merge(x, y, on=['well', 'cell_id']), datasets)
     df.to_csv(oname, sep='\t', na_rep='NA', index=False)
@@ -132,8 +155,7 @@ def main(multiqc_data, count_files, params, oname):
 with open(snakemake.log[0], 'w') as fh:
     sys.stderr = sys.stdout = fh
     main(
-        snakemake.input['multiqc_data'],
-        snakemake.input['read_counts'],
+        snakemake.input,
         snakemake.params,
         snakemake.output['platetools_data'],
     )

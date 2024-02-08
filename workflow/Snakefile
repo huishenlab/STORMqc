@@ -66,6 +66,9 @@ rule all:
         # Platetools data (collects data into a single data frame for plotting)
         f'{ANALYSIS}/plots/platetools_data.tsv',
 
+        # Make quality control plots
+        f'{ANALYSIS}/plots/quality_control_plots.pdf',
+
 include:
     'rules/prealignment.smk'
 

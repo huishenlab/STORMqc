@@ -47,6 +47,7 @@ rule platetools_data:
     input:
         multiqc_data = f'{ANALYSIS}/multiqc/multiqc_report_data/multiqc_data.json',
         read_counts = expand(f'{ANALYSIS}/star/{{samples.sample}}ReadsPerGene.out.tab', samples=SAMPLES.itertuples()),
+        non_annotated = expand(f'{ANALYSIS}/star/{{samples.sample}}.non_annotated.tsv', samples=SAMPLES.itertuples()),
     output:
         platetools_data = f'{ANALYSIS}/plots/platetools_data.tsv',
     params:
@@ -65,3 +66,21 @@ rule platetools_data:
         '../envs/python.yaml'
     script:
         '../scripts/collect_platetools_data.py'
+
+rule make_plots:
+    input:
+        pt_data = f'{ANALYSIS}/plots/platetools_data.tsv',
+    output:
+        pdf = f'{ANALYSIS}/plots/quality_control_plots.pdf',
+    log:
+        log_file = f'{LOG}/plots/make_plots.log',
+    benchmark:
+        f'{BENCHMARK}/plots/make_plots.txt',
+    threads: 1
+    resources:
+        mem_gb = config['hpc_parameters']['memory']['small'],
+        time = config['hpc_parameters']['runtime']['short'],
+    conda:
+        '../envs/r.yaml'
+    script:
+        '../scripts/create_qc_plots.R'
