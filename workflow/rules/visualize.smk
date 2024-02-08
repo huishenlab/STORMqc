@@ -50,9 +50,9 @@ rule platetools_data:
     output:
         platetools_data = f'{ANALYSIS}/plots/platetools_data.tsv',
     params:
-        rrna = config['gene_ids']['rrna'],
-        mito = config['gene_ids']['mito'],
-        ercc = config['gene_ids']['ercc'],
+        rrna = config['resources']['rrna_gene_ids'],
+        mito = config['resources']['mito_gene_ids'],
+        ercc = config['resources']['ercc_gene_ids'],
     log:
         f'{LOG}/plots/platetools_data.log',
     benchmark:

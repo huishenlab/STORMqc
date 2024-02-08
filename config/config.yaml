@@ -59,8 +59,9 @@ star:
 
 # Parameters related to gene IDs
 #-----------------------------------------------------------------------------------------------------------------------
-gene_ids:
-    rrna: RRNA_PATH
-    mito: MITO_PATH
-    ercc: ERCC_PATH
+resources:
+    rrna_gene_ids: RRNA_PATH
+    mito_gene_ids: MITO_PATH
+    ercc_gene_ids: ERCC_PATH
+    annotated_space: ANNOT_SPACE
 #-----------------------------------------------------------------------------------------------------------------------

@@ -24,7 +24,7 @@ rule star_align:
         star_idx = config['star']['index'],
         prefix = f'{ANALYSIS}/star/{{sample}}',
     log:
-        f'{LOG}/star/{{sample}}.log',
+        f'{LOG}/star/{{sample}}.star_align.log',
     benchmark:
         f'{BENCHMARK}/star/{{sample}}.txt',
     threads: config['hpc_parameters']['threads']['star'],
@@ -86,4 +86,34 @@ rule samtools_flagstat:
     shell:
         '''
         samtools flagstat -@ {threads} {input} 1> {output} 2> {log}
+        '''
+
+rule non_annotated_space:
+    input:
+        f'{ANALYSIS}/star/{{sample}}Aligned.sortedByCoord.out.bam',
+    output:
+        n_reads = f'{ANALYSIS}/star/{{sample}}.non_annotated.tsv',
+        subset = temp(f'{ANALYSIS}/star/{{sample}}Aligned.sortedByCoord.subsetted.bam'),
+    params:
+        annot = config['resources']['annotated_space'],
+    log:
+        f'{LOG}/star/{{sample}}.non_annotated_space.log',
+    benchmark:
+        f'{BENCHMARK}/star/{{sample}}.non_annotated_space.txt',
+    threads: 1
+    resources:
+        mem_gb = config['hpc_parameters']['memory']['small'],
+        time = config['hpc_parameters']['runtime']['short'],
+    conda:
+        '../envs/star.yaml',
+    shell:
+        '''
+        # Pull out proper-pair mapped reads that are not flagged as not primary, duplicate, QC-fail or supplementary
+        samtools view -f 3 -F 3840 -o {output.subset} {input} 2> {log}
+
+        # total number of reads from subsetted BAM
+        echo -e "total_reads\t`samtools view -c {output.subset}`" 1> {output.n_reads} 2>> {log}
+
+        # number of reads that have no overlap with annotated space
+        echo -e "non_annotated\t`bedtools intersect -v -a {output.subset} -b {params.annot} | samtools view | wc -l`" 1>> {output.n_reads} 2>> {log}
         '''

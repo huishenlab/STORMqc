@@ -54,6 +54,10 @@ rule all:
             f'{ANALYSIS}/samtools/{{samples.sample}}.flagstat',
             samples = SAMPLES.itertuples()
         ),
+        expand(
+            f'{ANALYSIS}/star/{{samples.sample}}.non_annotated.tsv',
+            samples=SAMPLES.itertuples()
+        ),
 
         # MultiQC
         f'{ANALYSIS}/multiqc/multiqc_report_data/multiqc_data.json',

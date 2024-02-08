@@ -310,6 +310,7 @@ def create_config_file(template, dname, snames, dir_files, resource_paths):
     template = template.replace('RRNA_PATH', resource_paths['rrna_path'])
     template = template.replace('MITO_PATH', resource_paths['mito_path'])
     template = template.replace('ERCC_PATH', resource_paths['ercc_path'])
+    template = template.replace('ANNOT_SPACE', resource_paths['annt_path'])
 
     configs = []
     for sname in snames:
@@ -376,6 +377,9 @@ def check_resource_files_exist(base_dir):
     if not os.path.exists(f'{base_dir}/resources/star_index_mouse'):
         print_error_and_exit(f'STAR index for the mouse genome is missing. {SOLUTION}')
 
+    if not os.path.exists(f'{base_dir}/resources/GRCh38_ERCC_enhancers_rmsk.merged.sorted.bed.gz'):
+        print_error_and_exit(f'Annotated space BED file is missing. {SOLUTION}')
+
     if not os.path.exists(f'{base_dir}/resources/gene_ids.hg38.rrna.txt'):
         print_error_and_exit(f'human rRNA gene IDs missing. {SOLUTION}')
     if not os.path.exists(f'{base_dir}/resources/gene_ids.hg38.mito.txt'):
@@ -419,6 +423,7 @@ if __name__ == '__main__':
         'rrna_path': os.path.abspath(f'{HOMEBASE}/../resources/gene_ids.hg38.rrna.txt'),
         'mito_path': os.path.abspath(f'{HOMEBASE}/../resources/gene_ids.hg38.mito.txt'),
         'ercc_path': os.path.abspath(f'{HOMEBASE}/../resources/gene_ids.hg38.ercc.txt'),
+        'annt_path': os.path.abspath(f'{HOMEBASE}/../resources/GRCh38_ERCC_enhancers_rmsk.merged.sorted.bed.gz'),
     }
 
     # Parse input file to get directories to create pipeline files for
