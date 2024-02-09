@@ -1,5 +1,6 @@
 import argparse
 import glob
+import gzip
 import sys
 import os
 from datetime import date
@@ -123,6 +124,22 @@ def get_config_template():
 def get_submit_template():
     return get_file_contents('submit_workflow_template.slurm')
 
+# Helper function to check minimum read count met
+def has_min_read_count(fname, min):
+    # Assume gzipped files that are 10kb or larger are close enough to the 100 limit
+    # TODO: This may need to be changed from a hardcoded value if we find most people
+    #       up the limit over 100 reads
+    if os.stat(fname).st_size > 10000:
+        return True
+
+    with gzip.open(fname, 'rb') as fh:
+        n_lines = sum(1 for line in fh)
+
+    if n_lines < 4*min:
+        return False
+
+    return True
+
 def parse_args():
     """Parse command line arguments.
 
@@ -133,6 +150,13 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(
         description = 'Create pipeline input files from a file with a list of names and directories'
+    )
+
+    parser.add_argument(
+        '-m', '--min-read-count',
+        default=100,
+        type=int,
+        help='minimum number of reads required in FASTQ file'
     )
 
     parser.add_argument(
@@ -239,11 +263,12 @@ def get_id_and_lane(fname):
 
     return ('_'.join(pieces[0:lane_index]), pieces[lane_index])
 
-def create_samplesheet(dname):
+def create_samplesheet(dname, min_reads):
     """Write samplesheet(s) from FASTQ files in a directory
 
     Inputs -
         dname: str - directory name to search
+        min_reads: int - minimum number of reads to include file
     Returns -
         list: samplesheet file names created
     """
@@ -256,6 +281,7 @@ def create_samplesheet(dname):
 
     # Multiple lanes may exist in one directory, split those up here
     lanes = {}
+    too_low = {}
     try:
         for fpath in fastqs:
             path, f1 = os.path.split(fpath)
@@ -267,10 +293,19 @@ def create_samplesheet(dname):
 
             sample_id, lane = get_id_and_lane(f1)
 
-            try:
-                lanes[lane].append((sample_id, f1, f2))
-            except KeyError:
-                lanes[lane] = [(sample_id, f1, f2)]
+            # Check for minimum read count
+            # Read 1 and Read 2 should have the same number of reads, so only check read 1
+            has_min = has_min_read_count(fpath, min_reads)
+            if not has_min:
+                try:
+                    too_low[lane].append(sample_id)
+                except KeyError:
+                    too_low[lane] = [sample_id]
+            else:
+                try:
+                    lanes[lane].append((sample_id, f1, f2))
+                except KeyError:
+                    lanes[lane] = [(sample_id, f1, f2)]
     except FileNotFoundError as e:
         print_error_and_exit(e)
 
@@ -284,6 +319,17 @@ def create_samplesheet(dname):
             fh.write('sample\tfq1\tfq2\n')
             for id, fq1, fq2 in files:
                 fh.write(f'{id}\t{fq1}\t{fq2}\n')
+
+    # Write out list of samples with too few reads
+    for lane, files in too_low.items():
+        output_fname = f'{lane}_too_few_reads.txt'
+
+        # Only write output file if samples exist with too few reads
+        if len(files) > 0:
+            with open(output_fname, 'w') as fh:
+                fh.write('sample\n')
+                for id in files:
+                    fh.write(f'{id}\n')
 
     return samplesheets
 
@@ -440,7 +486,7 @@ if __name__ == '__main__':
         os.chdir(dir_files.pip_dir)
 
         # Make samplesheets
-        samplesheets = create_samplesheet(d)
+        samplesheets = create_samplesheet(d, args.min_read_count)
 
         # Now that we've processed the input directory, we can create lane subdirectories
         lanes = [s.replace('_samples.tsv', '') for s in samplesheets]
