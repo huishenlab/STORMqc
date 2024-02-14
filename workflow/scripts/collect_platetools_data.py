@@ -42,9 +42,7 @@ def parse_qual_data(l):
 
     return (round(numerator/total, 2), round(100* q30 / total, 2))
 
-def parse_per_sequence_qual_scores(data):
-    score_list = data['report_plot_data']['fastqc_per_sequence_quality_scores_plot']['datasets'][0]
-
+def parse_per_sequence_qual_scores_list(score_list):
     indexes = {}
     for idx, d in enumerate(score_list):
         base = d['name'].replace('_R1', '').replace('_R2', '')
@@ -70,6 +68,33 @@ def parse_per_sequence_qual_scores(data):
         qual_data['qual_q30_R2'].append(q30_qual_R2)
 
     return pd.DataFrame(qual_data)
+
+def parse_per_sequence_qual_scores_json(data):
+    score_list = data['report_plot_data']['fastqc_per_sequence_quality_scores_plot']['datasets'][0]
+
+    return parse_per_sequence_qual_scores_list(score_list)
+
+def parse_per_sequence_qual_scores_file(fname):
+    with open(fname, 'r') as fh:
+        file_contents = fh.read()
+
+    file_contents = file_contents.strip('\n').split('\n')
+    if len(file_contents) % 2 != 0:
+        print('ERROR: malformed file: {fname}')
+        sys.exit(1)
+
+    score_list = []
+    for i in range(0, len(file_contents)-1, 2):
+        scores = file_contents[i].split('\t')
+        counts = file_contents[i+1].split('\t')
+        if len(scores) != len(counts):
+            print('ERROR: different number of entries in score and count lines: {fname}')
+
+        name = counts[0]
+        data = [[float(scores[j]), float(counts[j])] for j in range(1, len(scores))]
+        score_list.append({'name': name, 'data': data})
+
+    return parse_per_sequence_qual_scores_list(score_list)
 
 def parse_general_stats(data):
     sub = data['report_saved_raw_data']['multiqc_general_stats']
@@ -144,7 +169,17 @@ def main(input, params, oname):
     data = read_file(input['multiqc_data'])
 
     datasets = []
-    datasets.append(parse_per_sequence_qual_scores(data))
+    qual_scores = None
+    if 'fastqc_per_sequence_quality_scores_plot' in data['report_plot_data'].keys():
+        qual_scores = parse_per_sequence_qual_scores_json(data)
+    else:
+        qual_scores = parse_per_sequence_qual_scores_file(
+            input['multiqc_data'].replace(
+                'multiqc_data.json',
+                'mqc_fastqc_per_sequence_quality_scores_plot_1.txt'
+            )
+        )
+    datasets.append(qual_scores)
     datasets.append(parse_general_stats(data))
     datasets.append(parse_read_counts(input['read_counts'], params))
     datasets.append(parse_non_annotated(input['non_annotated']))
