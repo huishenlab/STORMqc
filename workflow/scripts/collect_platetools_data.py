@@ -141,7 +141,7 @@ def parse_per_sequence_qual_scores_file(fname):
         scores = file_contents[i].split('\t')
         counts = file_contents[i+1].split('\t')
         if len(scores) != len(counts):
-            print('ERROR: different number of entries in score and count lines: {fname}')
+            print(f'ERROR: different number of entries in score and count lines: {fname}')
 
         name = counts[0]
         data = [[float(scores[j]), float(counts[j])] for j in range(1, len(scores))]
@@ -150,9 +150,23 @@ def parse_per_sequence_qual_scores_file(fname):
     return parse_per_sequence_qual_scores_dict(score_list)
 
 def parse_general_stats(data):
-    sub = data['report_saved_raw_data']['multiqc_general_stats']
+    """Parse raw data for general statistics.
 
-    uniq = set([s.replace('_R1', '').replace('_R2', '') for s in sub.keys()])
+    Input -
+        data - dict, JSON input from multiqc_data.json
+    Returns -
+        pd.DataFrame
+    """
+    # Only need the raw data portion of the dict
+    sub = data['report_saved_raw_data']
+
+    # Check to make sure we have the proper inputs
+    for key in ['multiqc_star', 'multiqc_fastqc']:
+        if key not in sub.keys():
+            print(f'ERROR: Missing {key} from report_save_raw_data of multiqc_data.json')
+
+    # Get unique base names for extracting keys
+    uniq = set([key for key in sub['multiqc_star'].keys()])
 
     read_data = {'well': [], 'cell_id': [], 'n_reads_mil_R1': [], 'n_reads_mil_R2': [], 'percent_uniq_map': []}
     for name in uniq:
@@ -161,13 +175,13 @@ def parse_general_stats(data):
         read_data['cell_id'].append(id)
 
         read_data['n_reads_mil_R1'].append(
-            round(sub[f'{name}_R1']['FastQC_mqc-generalstats-fastqc-total_sequences'] / 1000000.0, 2)
+            round(sub['multiqc_fastqc'][f'{name}_R1']['Total Sequences'] / 1000000.0, 2)
         )
         read_data['n_reads_mil_R2'].append(
-            round(sub[f'{name}_R2']['FastQC_mqc-generalstats-fastqc-total_sequences'] / 1000000.0, 2)
+            round(sub['multiqc_fastqc'][f'{name}_R2']['Total Sequences'] / 1000000.0, 2)
         )
         read_data['percent_uniq_map'].append(
-            sub[name]['STAR_mqc-generalstats-star-uniquely_mapped_percent']
+            sub['multiqc_star'][name]['uniquely_mapped_percent']
         )
 
     return pd.DataFrame(read_data)
