@@ -6,20 +6,38 @@ import sys
 import re
 import os
 
-def read_file(fname):
+def read_json_file(fname):
+    """Read JSON file into a dict.
+
+    Inputs -
+        fname - str, filename
+    Returns -
+        dict
+    """
     with open(fname, 'r') as fh:
         data = json.load(fh)
     return data
 
 def parse_name(s):
+    """Parse name string into its well, id, and read number.
+
+    Inputs -
+        s - str, name string for a well
+    Returns -
+        tuple - (str, str, str)
+    """
     pieces = s.split('_')
 
+    # Make sure the name string has the well in the right location
     m1 = re.match('^[A-P][0-2][0-9]$', pieces[0])
     if m1 is None:
         print(f'ERROR: Unknown identifier: {s}. Must be in the form: (well)_(cell id)_(read #)')
         sys.exit(1)
+
     well = pieces[0]
 
+    # Default to case where R1 and R2 are not in the name string
+    # Can then check and change if needed
     read = None
     id = '_'.join(pieces[1:])
     if 'R1' in pieces or 'R2' in pieces:
@@ -29,9 +47,16 @@ def parse_name(s):
     return (well, id, read)
 
 def parse_qual_data(l):
-    total = 0
-    numerator = 0
-    q30 = 0
+    """Parse list of quality score data.
+
+    Inputs -
+        l - list, elements are 2-element lists with qual score and corresponding count
+    Returns -
+        tuple, (float, float)
+    """
+    total     = 0 # total number of reads
+    numerator = 0 # sum of score*count for weighted averaging
+    q30       = 0 # number of reads with score >= 30
 
     for pair in l:
         if pair[0] >= 30:
@@ -40,9 +65,17 @@ def parse_qual_data(l):
         total += pair[1]
         numerator += pair[0] * pair[1]
 
-    return (round(numerator/total, 2), round(100* q30 / total, 2))
+    return (round(numerator/total, 2), round(100 * q30 / total, 2))
 
-def parse_per_sequence_qual_scores_list(score_list):
+def parse_per_sequence_qual_scores_dict(score_list):
+    """Parse dict with name and data entries.
+
+    Inputs -
+        score_list - dict, follows format of [{'name': '(well)_(id)_(read)', 'data': [[score, count], ...]
+    Returns -
+        pd.DataFrame
+    """
+    # Reads 1 and 2 may not always be next to one another, so scan through list and pull out indexes for each read
     indexes = {}
     for idx, d in enumerate(score_list):
         base = d['name'].replace('_R1', '').replace('_R2', '')
@@ -53,6 +86,7 @@ def parse_per_sequence_qual_scores_list(score_list):
         except:
             indexes[base] = {read: idx}
 
+    # Calculate stats and setup for creating DataFrame
     qual_data = {'well': [], 'cell_id': [], 'qual_avg_R1': [], 'qual_q30_R1': [], 'qual_avg_R2': [], 'qual_q30_R2': []}
     for base, dic in indexes.items():
         well, id, _ = parse_name(base)
@@ -70,19 +104,38 @@ def parse_per_sequence_qual_scores_list(score_list):
     return pd.DataFrame(qual_data)
 
 def parse_per_sequence_qual_scores_json(data):
+    """Wrapper around parse_per_sequence_qual_scores_dict for JSON dict input.
+
+    Inputs -
+        data - dict, from multiqc_data.json
+    Returns -
+        pd.DataFrame
+    """
     score_list = data['report_plot_data']['fastqc_per_sequence_quality_scores_plot']['datasets'][0]
 
-    return parse_per_sequence_qual_scores_list(score_list)
+    return parse_per_sequence_qual_scores_dict(score_list)
 
 def parse_per_sequence_qual_scores_file(fname):
+    """Wrapper around parse_per_sequence_qual_scores_dict for text file input.
+
+    Inputs -
+        fname - str, file name
+    Returns -
+        pd.DataFrame
+    """
+    # If reading from a text file, we need to put the file contents into the correct data structure for
+    # parse_per_sequence_qual_scores_dict
     with open(fname, 'r') as fh:
         file_contents = fh.read()
 
+    # File should have an even number of rows (a score and a count line for each sample)
+    # Verify that's the case before continuing
     file_contents = file_contents.strip('\n').split('\n')
     if len(file_contents) % 2 != 0:
         print('ERROR: malformed file: {fname}')
         sys.exit(1)
 
+    # Parse file contents into expected data structure
     score_list = []
     for i in range(0, len(file_contents)-1, 2):
         scores = file_contents[i].split('\t')
@@ -94,7 +147,7 @@ def parse_per_sequence_qual_scores_file(fname):
         data = [[float(scores[j]), float(counts[j])] for j in range(1, len(scores))]
         score_list.append({'name': name, 'data': data})
 
-    return parse_per_sequence_qual_scores_list(score_list)
+    return parse_per_sequence_qual_scores_dict(score_list)
 
 def parse_general_stats(data):
     sub = data['report_saved_raw_data']['multiqc_general_stats']
@@ -120,10 +173,20 @@ def parse_general_stats(data):
     return pd.DataFrame(read_data)
 
 def parse_read_counts(count_files, params):
+    """Parse counts matrix file to find counts to undesired locations.
+
+    Inputs -
+        count_files - list, file names for input
+        params - dict, contains file names that include undesired locations
+    Returns -
+        pd.DataFrame
+    """
+    # rRNA, mitochondrial DNA, and ERCC gene names
     rrna = pd.read_csv(params['rrna'], sep=' ', names=['id', 'name'])
     mito = pd.read_csv(params['mito'], sep=' ', names=['id', 'name'])
     ercc = pd.read_csv(params['ercc'], sep=' ', names=['id', 'name'])
 
+    # Parse input files
     count_data = {'well': [], 'cell_id': [], 'rrna': [], 'mito': [], 'ercc': []}
     for fname in count_files:
         _, name = os.path.split(fname)
@@ -144,6 +207,13 @@ def parse_read_counts(count_files, params):
     return pd.DataFrame(count_data)
 
 def parse_non_annotated(infiles):
+    """Parse text files with info on reads aligning to non-annotated space.
+
+    Inputs -
+        infiles - list, file names for input
+    Returns -
+        pd.DataFrame
+    """
     out_data = {'well': [], 'cell_id': [], 'non_annot': []}
     for fname in infiles:
         _, name = os.path.split(fname)
@@ -166,9 +236,10 @@ def parse_non_annotated(infiles):
     return pd.DataFrame(out_data)
 
 def main(input, params, oname):
-    data = read_file(input['multiqc_data'])
+    # Read MultiQC data JSON file
+    data = read_json_file(input['multiqc_data'])
 
-    datasets = []
+    # Figure out how we can get the quality score data
     qual_scores = None
     if 'fastqc_per_sequence_quality_scores_plot' in data['report_plot_data'].keys():
         qual_scores = parse_per_sequence_qual_scores_json(data)
@@ -179,6 +250,9 @@ def main(input, params, oname):
                 'mqc_fastqc_per_sequence_quality_scores_plot_1.txt'
             )
         )
+
+    # Collect datasets for merging
+    datasets = []
     datasets.append(qual_scores)
     datasets.append(parse_general_stats(data))
     datasets.append(parse_read_counts(input['read_counts'], params))
@@ -187,6 +261,7 @@ def main(input, params, oname):
     df = reduce(lambda x, y: pd.merge(x, y, on=['well', 'cell_id']), datasets)
     df.to_csv(oname, sep='\t', na_rep='NA', index=False)
 
+# Run script
 with open(snakemake.log[0], 'w') as fh:
     sys.stderr = sys.stdout = fh
     main(
