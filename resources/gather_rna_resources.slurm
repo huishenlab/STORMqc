@@ -8,7 +8,6 @@
 cd ${SLURM_SUBMIT_DIR}
 
 # Load needed tools
-module load bbc2/fastx_toolkit/fastx_toolkit-0.0.13
 module load bbc2/STAR/STAR-2.7.11a
 
 # ERCC spike-ins
