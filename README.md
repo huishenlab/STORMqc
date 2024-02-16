@@ -161,3 +161,18 @@ running the pipeline, `*_samples.tsv` is the samplesheet based on the FASTQ file
 that is submitted to the SLURM job scheduler, and `*_too_few_reads.txt` is a list of wells that weren't included in the
 samplesheet because they didn't meet the minimum read count requirement in at least one of the FASTQ files for that
 well.
+
+# Running the Pipeline
+
+Now that you've created the pipeline files, it's simply a matter of submitting the slurm scripts to the scheduler and
+sitting back while the jobs run. You can do that by running (from the top directory of the pipeline):
+```
+sbatch results/experiment_id_1/pipeline_files/L001_submit.slurm
+```
+
+If you have multiple lanes and/or multiple experiments, you can submit multiple scripts at one time, but note that you
+will be competing with yourself for resources, so I don't suggest submitting more than a couple at a time.
+```
+sbatch results/experiment_id_1/pipeline_files/L001_submit.slurm
+sbatch results/experiment_id_1/pipeline_files/L002_submit.slurm
+```
