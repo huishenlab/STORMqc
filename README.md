@@ -15,6 +15,8 @@ git clone git@github.com:huishenlab/STORMqc.git <name of what you want your dire
 
 ## Create Resources
 
+**Note, the resources must be created before you can start creating files to run the pipeline.**
+
 ### Requirements for creating resources
 
 The following are the tools you will need access to in order to create the resources. Many of them are likely to be
@@ -40,6 +42,28 @@ This process will take an hour or two and will prepare both human (hg38) and mou
 pipeline is not setup to actually process mouse data, but the resources are there for easing the transition process once
 mouse capabilities are added in the future.
 
-**Note, the resources must be created before you can proceed to the next step.**
+### Resources created / downloaded
+
+  - FASTA and GTF for ERCC spike-in sequences
+  - Human files
+    - GENCODE primary assembly FASTA and GTF (GRCh38)
+    - FANTOM enhancer location BED (hg38)
+    - RepeatMasker repeat sequence location BED (hg38)
+  - Mouse files
+    - GENCODE primary assembly FASTA and GTF (GRCm39)
+    - FANTOM enhancer location BED (mm10)
+    - RepeatMasker repeat sequence location BED (mm10)
+  - Merged files
+    - Human + ERCC FASTA and GTF
+    - Human annotated space BED (Human GTF annotation locations + ERCC GTF annotation locations + enhancers + repeats)
+    - Mouse + ERCC FASTA and GTF
+    - Mouse annotated space BED (Mouse GTF annotation locations + ERCC GTF annotation locations + enhancers + repeats)
+  - STAR indexes
+    - Merged human + ERCC with merged human GTF
+    - Merged mouse + ERCC with merged mouse GTF
+  - Gene ID lists
+    - rRNA gene IDs (mouse and human)
+    - mtDNA gene IDs (mouse and human)
+    - ERCC gene IDs (mouse and human)
 
 # Pipeline Overview
