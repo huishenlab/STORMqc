@@ -1,11 +1,32 @@
 # STORMqc
-QC pipeline for STORM data
 
-# Download Repository and Create Resources
+## Pipeline Overview
+
+The STORMqc pipeline aims to provide a way to verify the quality of a STORM-seq library preparation and sequencing run.
+It currently works for human data with the intention of adding mouse capabilities in the future. Broadly speaking, the
+pipeline runs:
+
+  - FastQC on both the read 1 and read 2 FASTQ files to get basic read quality metrics
+  - Aligns the FASTQ files with STAR ("regular" STAR, not STARsolo) for getting counts to undesirable mapping locations
+  (rRNA, mtDNA, ERCC spike-ins, and non-annotated genomic space)
+  - `samtools stats` and `samtools flagstat` for alignment metrics
+  - MultiQC is run over the processed files to collate everything
+  - Specific metrics (including, but not limited to, average base quality, number of sequences, and unique mapping
+  percentage) are plotted in a 384-well plate layout for visualization of spatially correlated failures
+
+The general steps for running the pipeline are:
+
+  1. Download repository and create resources (only needs to be done once)
+  2. After resources have been created, create files to run pipeline
+  3. Run pipeline
+
+More details are provided below on each of these steps.
+
+## Download Repository and Create Resources
 
 This process only needs to be done once to get setup for all experiments.
 
-## Download Repository
+### Download Repository
 
 To download the STORMqc git repository from [GitHub](https://github.com/huishenlab/STORMqc), run
 ```
@@ -13,11 +34,11 @@ cd /path/to/where/you/want/the/qc/directory/to/go
 git clone git@github.com:huishenlab/STORMqc.git <name of what you want your directory to be>
 ```
 
-## Create Resources
+### Create Resources
 
 **Note, the resources must be created before you can start creating files to run the pipeline.**
 
-### Requirements for creating resources
+#### Requirements for creating resources
 
 The following are the tools you will need access to in order to create the resources. Many of them are likely to be
 available on your typical unix/linux distribution, but some may need to be installed or acquired yourself (e.g.,
@@ -30,7 +51,7 @@ samtools, bedtools, and STAR).
   - bedtools
   - STAR (loaded via linux module)
 
-### Submitting the resource creator script
+#### Submitting the resource creator script
 
 Say you've named your directory `storm_fun`, your first step in `storm_fun` is to create the reference resources needed
 for performing the scRNA-seq alignments:
@@ -42,7 +63,7 @@ This process will take an hour or two and will prepare both human (hg38) and mou
 pipeline is not setup to actually process mouse data, but the resources are there for easing the transition process once
 mouse capabilities are added in the future.
 
-### Resources created / downloaded
+#### Resources created / downloaded
 
   - FASTA and GTF for ERCC spike-in sequences
   - Human files
@@ -65,5 +86,3 @@ mouse capabilities are added in the future.
     - rRNA gene IDs (mouse and human)
     - mtDNA gene IDs (mouse and human)
     - ERCC gene IDs (mouse and human)
-
-# Pipeline Overview
