@@ -179,3 +179,47 @@ will be competing with yourself for resources, so I don't suggest submitting mor
 sbatch results/experiment_id_1/pipeline_files/L001_submit.slurm
 sbatch results/experiment_id_1/pipeline_files/L002_submit.slurm
 ```
+
+## Processed Output from Pipeline
+
+As mentioned previously all processed outputs form the pipeline can be found in the `results/experiment_id/analysis`
+directory. Inside this directory, you will see a directory for each lane of data (`L001`/`L002`/etc.) where each of
+these directories contain the following (`*` represents that every sample will have a corresponding file):
+```
+L001
+|- fastqc
+|  |- *_R1_fastqc.html
+|  |- *_R1_fastqc.zip
+|  |- *_R2_fastqc.html
+|  |- *_R2_fastqc.zip
+|- multiqc
+|  |- multiqc_report_data/
+|  |- multiqc_report.html
+|- plots
+|  |- platetools_data.tsv
+|  |- quality_control_plots.pdf
+|- renamed_fastqs
+|  |- *_R1.fastq.gz
+|  |- *_R2.fastq.gz
+|- samtools
+|  |- *.stats
+|  |- *.flagstat
+|- star
+|  |- *.non_annotated.tsv
+|  |- *Log.final.out
+|  |- *Log.out
+|  |- *Log.progress.out
+|  |- *ReadsPerGene.out.tab
+|  |- *SJ.out.tab
+```
+
+### Processed Output Descriptions
+
+  - `fastqc`: FastQC output files for reads 1 and 2 for each sample ID processed
+  - `multiqc`: output from MultiQC
+  - `plots`: additional figures for quick checks of STORM-seq run
+  - `renamed_fastqs`: symlinks to raw data - provides consistent naming scheme for Snakemake
+  - `samtools`: stats and flagstat output from `samtools`
+  - `star`: log and counts files from STAR, also includes read counts aligned to non-annotated space (non-annotated
+  space considered as genomic space that does *not* fall in the annotation GTF (both ERCC and your species of interest),
+  RepeatMasker defined space, and FANTOM5 enhancer defined space.
