@@ -238,6 +238,22 @@ def format_well_name(well):
     else:
         print_error_and_exit(f'malformed well name input: {well}')
 
+def split_name_and_remove_unwanted_tags(fname):
+    """Split filename while also removing unwanted tags.
+
+    Inputs -
+        fname: str - file name
+    Returns -
+        list, split on '_'
+    """
+    pieces = fname.split('_')
+
+    problem_tags = ['plate', 'Plate']
+    for problem in problem_tags:
+        pieces = [x for x in pieces if problem not in x]
+
+    return pieces
+
 def get_id_and_lane(fname):
     """Parse FASTQ name to extract sample ID and lane information
 
@@ -246,7 +262,7 @@ def get_id_and_lane(fname):
     Return -
         tuple: (str, str) - (sample ID, lane)
     """
-    pieces = [x for x in fname.split('_') if 'plate' not in x]
+    pieces = split_name_and_remove_unwanted_tags(fname)
 
     # Get index of lane element, this will be the position before the read name
     # Handling it this way avoids relying on the sample ID always being "Well_CellId"
