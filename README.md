@@ -117,7 +117,10 @@ Therefore, if you accidentally repeat the same FASTQ directory with different ex
 To create the pipeline files, run these commands (starting from the top directory of your pipeline):
 ```
 cd bin
-python make_pipeline_files.py [-m|--min-read-count 100] [-O|--overwrite ask/always/never] input_file.tsv
+python make_pipeline_files.py \
+    [-m|--min-read-count 100] \
+    [-O|--overwrite ask/always/never] \
+    input_file.tsv
 ```
 The `-m|--min-read-count` option allows you to adjust the minimum number of reads needed in a FASTQ to be included when
 running the pipeline. The default is 100 reads. Note, the code will assume that a file larger than 10 kB is large
@@ -129,27 +132,27 @@ The generator script will create all directories and files needed for running th
 `results` directory:
 ```
 results
-  |-- experiment_id_1
-    |-- analysis
-      |-- L001
-      |-- L002
-      |-- ...
-    |-- benchmark
-      |-- L001
-      |-- L002
-      |-- ...
-    |-- log
-      |-- L001
-      |-- L002
-      |-- ...
-    |-- pipeline_files
-      |-- L001_config.yaml
-      |-- L001_samples.tsv
-      |-- L001_submit.slurm
-      |-- L001_too_few_reads.txt
-      |-- ...
-  |-- experiment_id_2
-    |-- ...
+|- experiment_id_1
+|  |- analysis
+|  |  |- L001
+|  |  |- L002
+|  |  |- ...
+|  |- benchmark
+|  |  |- L001
+|  |  |- L002
+|  |  |- ...
+|  |- log
+|  |  |- L001
+|  |  |- L002
+|  |  |- ...
+|  |- pipeline_files
+|  |  |- L001_config.yaml
+|  |  |- L001_samples.tsv
+|  |  |- L001_submit.slurm
+|  |  |- L001_too_few_reads.txt
+|  |  |- ...
+|- experiment_id_2
+|  |- ...
 ```
 
 Regarding the contents of each experiment directory, the `analysis` directory is where all processed outputs from the
@@ -162,7 +165,7 @@ that is submitted to the SLURM job scheduler, and `*_too_few_reads.txt` is a lis
 samplesheet because they didn't meet the minimum read count requirement in at least one of the FASTQ files for that
 well.
 
-# Running the Pipeline
+## Running the Pipeline
 
 Now that you've created the pipeline files, it's simply a matter of submitting the slurm scripts to the scheduler and
 sitting back while the jobs run. You can do that by running (from the top directory of the pipeline):
