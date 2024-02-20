@@ -18,8 +18,8 @@ rule star_align:
         f'{ANALYSIS}/star/{{sample}}Log.progress.out',
         f'{ANALYSIS}/star/{{sample}}ReadsPerGene.out.tab',
         f'{ANALYSIS}/star/{{sample}}SJ.out.tab',
-        bam = f'{ANALYSIS}/star/{{sample}}Aligned.sortedByCoord.out.bam',
-        bai = f'{ANALYSIS}/star/{{sample}}Aligned.sortedByCoord.out.bam.bai',
+        bam = temp(f'{ANALYSIS}/star/{{sample}}Aligned.sortedByCoord.out.bam'),
+        bai = temp(f'{ANALYSIS}/star/{{sample}}Aligned.sortedByCoord.out.bam.bai'),
     params:
         star_idx = config['star']['index'],
         prefix = f'{ANALYSIS}/star/{{sample}}',
