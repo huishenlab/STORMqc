@@ -72,6 +72,8 @@ rule make_plots:
         pt_data = f'{ANALYSIS}/plots/platetools_data.tsv',
     output:
         pdf = f'{ANALYSIS}/plots/quality_control_plots.pdf',
+    params:
+        limits = config['visualize']['limits'],
     log:
         log_file = f'{LOG}/plots/make_plots.log',
     benchmark:

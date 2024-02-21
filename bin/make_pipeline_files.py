@@ -160,15 +160,21 @@ def parse_args():
     )
 
     parser.add_argument(
-        'directory_file',
-        help='file with name prefixes and directories'
-    )
-
-    parser.add_argument(
         '-O', '--overwrite',
         choices = ['ask', 'always', 'never'],
         default='ask',
         help='how to handle existing experiment directories (ask [default]: ask for confirmation | always: always overwrite | never: never overwrite)'
+    )
+
+    parser.add_argument(
+        '-V', '--visualize-config',
+        default='default_visualization_limits.yaml',
+        help='YAML file controlling visualization limits'
+    )
+
+    parser.add_argument(
+        'directory_file',
+        help='file with name prefixes and directories'
     )
 
     return parser.parse_args()
@@ -349,7 +355,7 @@ def create_samplesheet(dname, min_reads):
 
     return samplesheets
 
-def create_config_file(template, dname, snames, dir_files, resource_paths):
+def create_config_file(template, dname, snames, dir_files, resource_paths, viz_config):
     """Create config file from template in config/ directory
 
     Inputs -
@@ -358,6 +364,7 @@ def create_config_file(template, dname, snames, dir_files, resource_paths):
         snames: str - samplesheet name
         dir_files: DirectoryFiles - paths where output should be written
         resource_paths: dict - paths to various resources
+        viz_config: str - path to visualization config file
     Returns -
         list: config file names created
     """
@@ -373,6 +380,7 @@ def create_config_file(template, dname, snames, dir_files, resource_paths):
     template = template.replace('MITO_PATH', resource_paths['mito_path'])
     template = template.replace('ERCC_PATH', resource_paths['ercc_path'])
     template = template.replace('ANNOT_SPACE', resource_paths['annt_path'])
+    template = template.replace('VIZ_LIMITS', viz_config)
 
     configs = []
     for sname in snames:
@@ -488,6 +496,11 @@ if __name__ == '__main__':
         'annt_path': os.path.abspath(f'{HOMEBASE}/../resources/GRCh38_ERCC_enhancers_rmsk.merged.sorted.bed.gz'),
     }
 
+    # Check visualization config exists
+    if not os.path.exists(args.visualize_config):
+        print_error_and_exit(f'visualization config file does not exist: {args.visualize_config}')
+    viz_config = os.path.abspath(args.visualize_config)
+
     # Parse input file to get directories to create pipeline files for
     dirs = parse_input_file(args.directory_file)
 
@@ -510,7 +523,7 @@ if __name__ == '__main__':
             dir_files.create_lane_directories(lane)
 
         # Make config files
-        configs = create_config_file(CONFIG_TEMPLATE, d, samplesheets, dir_files, resource_paths)
+        configs = create_config_file(CONFIG_TEMPLATE, d, samplesheets, dir_files, resource_paths, viz_config)
 
         # Make submit scripts
         submits = create_submit_file(SUBMIT_TEMPLATE, configs, dir_files)

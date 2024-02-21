@@ -8,3 +8,4 @@ dependencies:
     - r-ggplot2=3.4.4
     - r-platetools=0.1.5
     - r-viridislite=0.4.2
+    - r-yaml=2.3.8

@@ -1,0 +1,61 @@
+# Default values for y-axis limits in platetools plots
+#
+# It is highly suggested that you do not modify this file, rather you should copy this file and then adjust values in
+# the copied file. You can then run the make_pipeline_files.py with the -V|--visualize-config option to create pipeline
+# files that point to the copied file instead.
+
+# For each plot, there is a low ("lo") and a high ("hi") option that can be adjusted. Note, no values are checked for
+# reasonableness, so it is up to the user to ensure the limits are reasonable.
+
+# Number of reads (in millions)
+n_reads:
+  lo: 0
+  hi: 5
+
+# Percentage of Read 1 reads with an average quality score >= 30 (average calculated by FastQC)
+qual_q30_r1:
+  lo: 0
+  hi: 100
+
+# Percentage of Read 2 reads with an average quality score >= 30 (average calculated by FastQC)
+qual_q30_r2:
+  lo: 0
+  hi: 100
+
+# Weighted average of average quality scores for Read 1
+# Average quality scores are weighted by the number of reads with that average score
+qual_avg_r1:
+  lo: 0
+  hi: 40
+
+# Weighted average of average quality scores for Read 2
+# Average quality scores are weighted by the number of reads with that average score
+qual_avg_r2:
+  lo: 0
+  hi: 40
+
+# Percent of reads that uniquely map (calculated by STAR)
+percent_uniq_map:
+  lo: 0
+  hi: 100
+
+# Percent of reads mapping to rRNA annotated genes
+rrna:
+  lo: 0
+  hi: 100
+
+# Percent of reads mapping to mtDNA annotated genes
+mito:
+  lo: 0
+  hi: 100
+
+# Percent of reads mapping to ERCC annotations
+ercc:
+  lo: 0
+  hi: 100
+
+# Percent of reads mapping to non-annotated space (any space that is not in the species GTF, ERCC GTF, repeat space, or
+# enhancer space)
+non_annotated:
+  lo: 0
+  hi: 100
