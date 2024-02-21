@@ -181,7 +181,7 @@ sbatch results/experiment_id_1/pipeline_files/L001_submit.slurm
 ```
 
 If you have multiple lanes and/or multiple experiments, you can submit multiple scripts at one time, but note that you
-will be competing with yourself for resources, so I don't suggest submitting more than a couple at a time.
+will be competing with yourself for resources, so I don't suggest submitting more than a few (3-4) at a time.
 ```
 sbatch results/experiment_id_1/pipeline_files/L001_submit.slurm
 sbatch results/experiment_id_1/pipeline_files/L002_submit.slurm
