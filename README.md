@@ -120,13 +120,18 @@ cd bin
 python make_pipeline_files.py \
     [-m|--min-read-count 100] \
     [-O|--overwrite ask/always/never] \
+    [-V|--visualize-config /path/to/viz_config.yaml] \
     input_file.tsv
 ```
 The `-m|--min-read-count` option allows you to adjust the minimum number of reads needed in a FASTQ to be included when
 running the pipeline. The default is 100 reads. Note, the code will assume that a file larger than 10 kB is large
 enough to be included in the pipeline. This is a reasonable size if the minimum read count is 100, but if you increase
 that number, you may have additional wells processed that you didn't want. The `-O|--overwrite` option provides the
-ability to toggle how to handle repeated experiment IDs.
+ability to toggle how to handle repeated experiment IDs. The `-V|--visualize-config` option allows you to provide your
+own YAML file for controlling the y-axis limits of the quality control (QC) plots. The default YAML file can be found in
+`bin/default_visualization_limits.yaml`. If you plan to change the QC plot limits, it is highly suggested that you make
+a copy of `bin/default_visualization_limits.yaml` and use this new file as your input to `make_pipeline_files.py`. This
+will allow you to maintain the default values while still having a file that you can adjust as needed.
 
 The generator script will create all directories and files needed for running the pipeline. These will be placed in the
 `results` directory:
@@ -147,6 +152,7 @@ results
 |  |  |- ...
 |  |- pipeline_files
 |  |  |- L001_config.yaml
+|  |  |- L001_rerun.slurm
 |  |  |- L001_samples.tsv
 |  |  |- L001_submit.slurm
 |  |  |- L001_too_few_reads.txt
@@ -161,9 +167,10 @@ run in the pipeline, while the `log` directory is for any error output when runn
 subdirectories in each of the output directories and run files for each lane found in the data directory (given by
 `L001`/`L002`/etc. in the read name). The run files are as follows: `*_config.yaml` is the configuration file for
 running the pipeline, `*_samples.tsv` is the samplesheet based on the FASTQ file name, `*_submit.slurm` is the script
-that is submitted to the SLURM job scheduler, and `*_too_few_reads.txt` is a list of wells that weren't included in the
-samplesheet because they didn't meet the minimum read count requirement in at least one of the FASTQ files for that
-well.
+that is submitted to the SLURM job scheduler for running the whole pipeline, `*_rerun.slurm` is the script that is
+submitted if you want to only rerun making the QC plots, and `*_too_few_reads.txt` is a list of wells that weren't
+included in the samplesheet because they didn't meet the minimum read count requirement in at least one of the FASTQ
+files for that well.
 
 ## Running the Pipeline
 
@@ -179,6 +186,17 @@ will be competing with yourself for resources, so I don't suggest submitting mor
 sbatch results/experiment_id_1/pipeline_files/L001_submit.slurm
 sbatch results/experiment_id_1/pipeline_files/L002_submit.slurm
 ```
+
+### Rerunning Only the Quality Control Plot Rule
+
+There may be times when you want to regenerate the QC plots with different y-axis limits. For these instances, there is
+a SLURM script that is provided that will only rerun the rule for generating the QC plots. After adjusting your limits
+YAML config file, run (or similar for other lanes):
+```
+sbatch results/experiment_id_1/pipeline_files/L001_rerun.slurm
+```
+Assuming you haven't deleted any files that were created by the pipeline, this will only regenerate the PDF of the QC
+plots.
 
 ## Processed Output from Pipeline
 
