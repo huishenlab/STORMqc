@@ -43,8 +43,7 @@ rule all:
         expand(
             f'{ANALYSIS}/star/{{samples.sample}}{{ext}}',
             samples = SAMPLES.itertuples(),
-            ext = ['Log.final.out', 'Log.out', 'Log.progress.out', 'ReadsPerGene.out.tab', 'SJ.out.tab',
-                   'Aligned.sortedByCoord.out.bam', 'Aligned.sortedByCoord.out.bam.bai']
+            ext = ['Log.final.out', 'Log.out', 'Log.progress.out', 'ReadsPerGene.out.tab', 'SJ.out.tab']
         ),
         expand(
             f'{ANALYSIS}/samtools/{{samples.sample}}.stats',
