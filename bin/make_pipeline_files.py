@@ -124,6 +124,10 @@ def get_config_template():
 def get_submit_template():
     return get_file_contents('submit_workflow_template.slurm')
 
+# Helper function to get template slurm file for rerunning make_plots
+def get_rerun_template():
+    return get_file_contents('rerun_quality_control_plots_template.slurm')
+
 # Helper function to check minimum read count met
 def has_min_read_count(fname, min):
     # Assume gzipped files that are 10kb or larger are close enough to the 100 limit
@@ -399,12 +403,12 @@ def create_config_file(template, dname, snames, dir_files, resource_paths, viz_c
 
     return configs
 
-def create_submit_file(template, cnames, dir_files):
+def create_submit_file(template, file_tag, cnames, dir_files):
     """Create slurm submit file from template in bin/ directory
 
     Inputs -
         template: str - submit file template
-        lname: str - log directory path
+        file_tag: str - tag to include between lane name and file extension [(lane)_(tag).slurm]
         cnames: str - config file names
         dir_files: DirectoryFiles - paths where output should be written
     Returns -
@@ -420,7 +424,7 @@ def create_submit_file(template, cnames, dir_files):
     submit_files = []
     for cname in cnames:
         lane = cname.replace('_config.yaml', '')
-        submit_fname = f'{lane}_submit.slurm'
+        submit_fname = f'{lane}_{file_tag}.slurm'
         submit_files.append(submit_fname)
 
         current = template
@@ -481,6 +485,7 @@ if __name__ == '__main__':
 
     # Get slurm submit file template before we start moving directories
     SUBMIT_TEMPLATE = get_submit_template()
+    RERUN_TEMPLATE = get_rerun_template()
 
     # Set a place to come back to before creating a new set of directories
     HOMEBASE = os.getcwd()
@@ -526,7 +531,8 @@ if __name__ == '__main__':
         configs = create_config_file(CONFIG_TEMPLATE, d, samplesheets, dir_files, resource_paths, viz_config)
 
         # Make submit scripts
-        submits = create_submit_file(SUBMIT_TEMPLATE, configs, dir_files)
+        submits = create_submit_file(SUBMIT_TEMPLATE, 'submit', configs, dir_files)
+        reruns = create_submit_file(RERUN_TEMPLATE, 'rerun', configs, dir_files)
 
         os.chdir(HOMEBASE)
 
