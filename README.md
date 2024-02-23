@@ -198,6 +198,9 @@ sbatch results/experiment_id_1/pipeline_files/L001_rerun.slurm
 Assuming you haven't deleted any files that were created by the pipeline, this will only regenerate the PDF of the QC
 plots.
 
+Note, values that fall outside of the limits provided will be colored white. This includes value that fall both above
+and below, so you won't necessarily be able to distinguish between the two.
+
 ## Processed Output from Pipeline
 
 As mentioned previously all processed outputs form the pipeline can be found in the `results/experiment_id/analysis`

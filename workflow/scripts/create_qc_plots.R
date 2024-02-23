@@ -7,7 +7,7 @@ make_plot <- function(df, column, title=NULL, limits=NULL) {
     p <- raw_map(data=df[column], well=df$well, plate=384) +
         ggtitle(title) +
         theme_dark() +
-        scale_fill_viridis_c(limits=limits)
+        scale_fill_viridis_c(limits=limits, na.value="white")
     
     p
 }
