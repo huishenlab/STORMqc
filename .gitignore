@@ -1,6 +1,3 @@
-# Results directory
-results/*
-
 # Files for snakemake
 .snakemake/
 
