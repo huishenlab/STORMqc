@@ -9,6 +9,7 @@ cd ${SLURM_SUBMIT_DIR}
 
 # Load needed tools
 module load bbc2/STAR/STAR-2.7.11a
+module load bbc2/bedtools/bedtools-2.30.0
 
 # ERCC spike-ins
 #-----------------------------------------------------------------------------------------------------------------------
