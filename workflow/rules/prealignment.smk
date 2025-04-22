@@ -56,3 +56,35 @@ rule fastqc:
         mkdir -p {params.dir}
         fastqc --outdir {params.dir} --threads {threads} {input} 2> {log.stderr} 1> {log.stdout}
         '''
+
+rule trim_reads:
+    input:
+        get_renamed_fastqs
+    output:
+        f'{ANALYSIS}/trim_reads/{{sample}}_R1_val_1.fq.gz',
+        f'{ANALYSIS}/trim_reads/{{sample}}_R2_val_2.fq.gz',
+    params:
+        outdir = f'{ANALYSIS}/trim_reads',
+    log:
+        stdout = f'{LOG}/trim_reads/{{sample}}.out',
+        stderr = f'{LOG}/trim_reads/{{sample}}.err',
+    benchmark:
+        f'{BENCHMARK}/trim_reads/{{sample}}.txt',
+    conda:
+        '../envs/babraham.yaml'
+    threads: config['hpc_parameters']['threads']['trim']
+    resources:
+        mem_mb = config['hpc_parameters']['memory']['small'],
+        time = config['hpc_parameters']['runtime']['short'],
+    shell:
+        """
+        trim_galore \
+            --output_dir {params.outdir} \
+            --cores {threads} \
+            --illumina \
+            --length 36 \
+            --paired \
+            --fastqc \
+            {input} \
+            2> {log.stderr} 1> {log.stdout}
+        """
