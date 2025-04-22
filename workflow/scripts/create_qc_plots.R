@@ -12,6 +12,9 @@ make_plot <- function(df, column, title=NULL, limits=NULL) {
     p
 }
 
+# TODO: This doesn't differentiate between cells with the same well, but
+#       different cell_id values. Maybe should look into plotting wells with the
+#       same cell_id on their own plots.
 create_plot <- function(data_file, limits_yaml, out_file, log_file) {
     cat("Loading data\n", file=log_file)
     df <- read.delim(data_file)
