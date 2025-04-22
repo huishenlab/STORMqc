@@ -13,6 +13,8 @@
 # Notes:
 #     Jan 2024 -
 #         Initial creation
+#     Apr 2025 -
+#         Add threads option for trimming FASTQs
 #-----------------------------------------------------------------------------------------------------------------------
 
 # HPC Parameters
@@ -22,6 +24,7 @@ hpc_parameters:
     # Number of threads to run for different parts of pipeline
     threads:
         fastqc: 2
+        trim: 4
         star: 16
         samtools: 8
     # Amounts of memory to requestion (in gb)
