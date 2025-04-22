@@ -148,6 +148,7 @@ def parse_per_sequence_qual_scores_file(fname):
         counts = file_contents[i+1].split('\t')
         if len(scores) != len(counts):
             print(f'ERROR: different number of entries in score and count lines: {fname}')
+            sys.exit(1)
 
         name = counts[0]
         data = [[float(scores[j]), float(counts[j])] for j in range(1, len(scores))]
@@ -170,6 +171,7 @@ def parse_general_stats(data):
     for key in ['multiqc_star', 'multiqc_fastqc']:
         if key not in sub.keys():
             print(f'ERROR: Missing {key} from report_save_raw_data of multiqc_data.json')
+            sys.exit(1)
 
     # Get unique base names for extracting keys
     uniq = set([key for key in sub['multiqc_star'].keys()])
