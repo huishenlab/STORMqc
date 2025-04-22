@@ -7,8 +7,9 @@ It currently works for human data with the intention of adding mouse capabilitie
 pipeline runs:
 
   - FastQC on both the read 1 and read 2 FASTQ files to get basic read quality metrics
-  - Aligns the FASTQ files with STAR ("regular" STAR, not STARsolo) for getting counts to undesirable mapping locations
-  (rRNA, mtDNA, ERCC spike-ins, and non-annotated genomic space)
+  - Trims data using TrimGalore!
+  - Aligns the trimmed FASTQ files with STAR ("regular" STAR, not STARsolo) for getting counts to undesirable mapping
+  locations (rRNA, mtDNA, ERCC spike-ins, and non-annotated genomic space)
   - `samtools stats` and `samtools flagstat` for alignment metrics
   - MultiQC is run over the processed files to collate everything
   - Specific metrics (including, but not limited to, average base quality, number of sequences, and unique mapping
@@ -41,15 +42,15 @@ git clone git@github.com:huishenlab/STORMqc.git <name of what you want your dire
 #### Requirements for creating resources
 
 The following are the tools you will need access to in order to create the resources. Many of them are likely to be
-available on your typical unix/linux distribution, but some may need to be installed or acquired yourself (e.g.,
-samtools, bedtools, and STAR).
+available on your typical UNIX/Linux distribution, but some may need to be installed or acquired yourself (e.g.,
+`samtools`, `bedtools`, and `STAR`).
 
-  - wget
-  - python
-  - samtools
-  - GNU awk
-  - bedtools
-  - STAR (loaded via linux module)
+  - `wget`
+  - `python`
+  - `samtools`
+  - GNU `awk`
+  - `bedtools`
+  - `STAR` (loaded via Linux module)
 
 #### Submitting the resource creator script
 
@@ -232,11 +233,20 @@ L001
 |  |- *Log.progress.out
 |  |- *ReadsPerGene.out.tab
 |  |- *SJ.out.tab
+|- trim_reads
+|  |- *_R1.fastq.gz_trimming_report.txt
+|  |- *_R1_val_1.fq.gz
+|  |- *_R1_val_1_fastqc.html
+|  |- *_R1_val_1_fastqc.zip
+|  |- *_R2.fastq.gz_trimming_report.txt
+|  |- *_R2_val_2.fq.gz
+|  |- *_R2_val_2_fastqc.html
+|  |- *_R2_val_2_fastqc.zip
 ```
 
 ### Processed Output Descriptions
 
-  - `fastqc`: FastQC output files for reads 1 and 2 for each sample ID processed
+  - `fastqc`: Raw FastQC output files for reads 1 and 2 for each sample ID processed
   - `multiqc`: output from MultiQC
   - `plots`: additional figures for quick checks of STORM-seq run
   - `renamed_fastqs`: symlinks to raw data - provides consistent naming scheme for Snakemake
@@ -244,3 +254,4 @@ L001
   - `star`: log and counts files from STAR, also includes read counts aligned to non-annotated space (non-annotated
   space considered as genomic space that does *not* fall in the annotation GTF (both ERCC and your species of interest),
   RepeatMasker defined space, and FANTOM5 enhancer defined space.
+  - `trim_reads`: Trimmed FASTQs and FastQC output from TrimGalore!
