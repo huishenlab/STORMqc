@@ -11,7 +11,8 @@
 
 rule star_align:
     input:
-        get_renamed_fastqs
+        r1 = f'{ANALYSIS}/trim_reads/{{sample}}_R1_val_1.fq.gz',
+        r2 = f'{ANALYSIS}/trim_reads/{{sample}}_R2_val_2.fq.gz',
     output:
         f'{ANALYSIS}/star/{{sample}}Log.final.out',
         f'{ANALYSIS}/star/{{sample}}Log.out',
@@ -38,7 +39,7 @@ rule star_align:
         STAR \
             --runThreadN {threads} \
             --genomeDir {params.star_idx} \
-            --readFilesIn {input} \
+            --readFilesIn {input.r1} {input.r2} \
             --readFilesCommand zcat \
             --outFileNamePrefix {params.prefix} \
             --outSAMtype BAM SortedByCoordinate \
