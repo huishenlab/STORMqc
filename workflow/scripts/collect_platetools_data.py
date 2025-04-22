@@ -40,7 +40,10 @@ def parse_name(s):
     # Can then check and change if needed
     read = None
     id = '_'.join(pieces[1:])
-    if 'R1' in pieces or 'R2' in pieces:
+    if 'val' in pieces:
+        read = pieces[-3]
+        id = '_'.join(pieces[1:-3])
+    elif 'R1' in pieces or 'R2' in pieces:
         read = pieces[-1]
         id = '_'.join(pieces[1:-1])
 
@@ -72,13 +75,16 @@ def parse_per_sequence_qual_scores_dict(score_list):
 
     Inputs -
         score_list - dict, follows format of [{'name': '(well)_(id)_(read)', 'data': [[score, count], ...]
+                           'name' may include '_val_{1,2}' as well - these are the ones we actually want
     Returns -
         pd.DataFrame
     """
     # Reads 1 and 2 may not always be next to one another, so scan through list and pull out indexes for each read
     indexes = {}
     for idx, d in enumerate(score_list):
-        base = d['name'].replace('_R1', '').replace('_R2', '')
+        if '_val_' not in d['name']:
+            continue
+        base = d['name'].replace('_R1_val_1', '').replace('_R2_val_2', '')
         read = 'R1' if 'R1' in d['name'] else 'R2'
 
         try:
@@ -175,10 +181,10 @@ def parse_general_stats(data):
         read_data['cell_id'].append(id)
 
         read_data['n_reads_mil_R1'].append(
-            round(sub['multiqc_fastqc'][f'{name}_R1']['Total Sequences'] / 1000000.0, 2)
+            round(sub['multiqc_fastqc'][f'{name}_R1_val_1']['Total Sequences'] / 1000000.0, 2)
         )
         read_data['n_reads_mil_R2'].append(
-            round(sub['multiqc_fastqc'][f'{name}_R2']['Total Sequences'] / 1000000.0, 2)
+            round(sub['multiqc_fastqc'][f'{name}_R2_val_2']['Total Sequences'] / 1000000.0, 2)
         )
         read_data['percent_uniq_map'].append(
             sub['multiqc_star'][name]['uniquely_mapped_percent']
