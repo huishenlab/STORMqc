@@ -10,7 +10,7 @@
 #----------------------------------------------------------------------------------------------------------------------
 
 def get_multiqc_params(wildcards):
-    indirs = f'{ANALYSIS}/fastqc {ANALYSIS}/star {ANALYSIS}/samtools'
+    indirs = f'{ANALYSIS}/fastqc {ANALYSIS}/star {ANALYSIS}/samtools {ANALYSIS}/trim_reads'
 
     return indirs
 
@@ -18,6 +18,8 @@ rule multiqc:
     input:
         # FASTqc
         expand(f'{ANALYSIS}/fastqc/{{samples.sample}}_R{{read}}_fastqc.zip', read=[1, 2], samples=SAMPLES.itertuples()),
+        # trim_galore
+        expand(f'{ANALYSIS}/trim_reads/{{samples.sample}}_R{{read}}_val_{{read}}.fq.gz', read=[1,2], samples=SAMPLES.itertuples()),
         # STAR
         expand(f'{ANALYSIS}/star/{{samples.sample}}Log.final.out', samples=SAMPLES.itertuples()),
         expand(f'{ANALYSIS}/star/{{samples.sample}}ReadsPerGene.out.tab', samples=SAMPLES.itertuples()),
