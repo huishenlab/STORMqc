@@ -25,21 +25,10 @@ checkpoint rename_fastq_files:
     script:
         '../scripts/rename.py'
 
-# TODO: Refactor to minimize repetition of code
 def get_renamed_fastqs(wildcards):
     cp_output = checkpoints.rename_fastq_files.get().output.sym_dir
 
     return list(expand(cp_output + '/' + wildcards.sample + '_R{read}.fastq.gz', read = [1, 2]))
-
-def get_renamed_read1(wildcards):
-    cp_output = checkpoints.rename_fastq_files.get().output.sym_dir
-
-    return cp_output + '/' + wildcards.sample + '_R1.fastq.gz'
-
-def get_renamed_read2(wildcards):
-    cp_output = checkpoints.rename_fastq_files.get().output.sym_dir
-
-    return cp_output + '/' + wildcards.sample + '_R2.fastq.gz'
 
 rule fastqc:
     input:
